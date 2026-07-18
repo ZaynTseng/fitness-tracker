@@ -957,8 +957,8 @@
       <div class="ri"><div class="rl">基础代谢</div><div class="rv">${Math.round(plan.bmr)}<small> kcal</small></div></div>
       <div class="ri"><div class="rl">日总消耗 TDEE</div><div class="rv">${Math.round(plan.tdee)}<small> kcal</small></div></div>
     </div>
-    <div class="btn-row"><button class="btn w" onclick="doApplyAll()">按参数重算全部阶段目标</button></div>
     <div class="plan-note">BMR 按 Katch-McArdle 公式（基于瘦体重），TDEE = BMR × 活动系数。重算会覆盖下方所有阶段的数字（含手动微调），可先在页底导出备份。</div>
+    <div class="btn-row"><button class="btn ghost" onclick="doApplyAll()">按参数更新全部阶段目标</button></div>
   </div>`;
       }
 
@@ -1051,7 +1051,7 @@
     <div class="btn-row">
       <button class="btn ghost sm" onclick="exportData()">导出备份</button>
       <button class="btn ghost sm" onclick="document.getElementById('impFile').click()">导入备份</button>
-      <button class="btn danger sm" onclick="resetAll()">恢复出厂设置</button>
+      <button class="btn danger sm" onclick="resetAll()">恢复初始设置</button>
       <input type="file" id="impFile" accept=".json,application/json" style="display:none" onchange="importData(this)">
     </div>
   </div>`;
