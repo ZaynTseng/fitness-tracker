@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>营养计划 · 碳循环安排</title>
+<style>
+:root{
+  --bg:#f4f6fa; --card:#ffffff; --text:#1a2233; --muted:#6b7690; --line:#e6eaf2;
+  --accent:#2f6bff; --accent2:#7c4dff; --green:#0eb981; --amber:#f59e0b; --red:#ef4444;
+  --radius:16px; --shadow:0 1px 2px rgba(20,30,60,.05),0 8px 24px rgba(20,30,60,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.55;padding-bottom:40px}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font-family:inherit;font-size:15px;color:var(--text)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+
+/* header */
+header{background:linear-gradient(120deg,#2f6bff,#7c4dff);color:#fff;padding:22px 0 60px;margin-bottom:-40px}
+.h-title{font-size:20px;font-weight:700;letter-spacing:.3px}
+.h-sub{font-size:12.5px;opacity:.85;margin-top:3px}
+
+/* cards */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+.card h3{font-size:14px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.card h3 .h-extra{font-size:12px;font-weight:500}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#ffffff,#f6f9ff);border:1px solid var(--line)}
+.hero .ht{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.hero .t1{font-size:18px;font-weight:800}
+.hero .t2{font-size:12.5px;color:var(--muted);margin-top:2px}
+.kcal-pill{font-size:13px;font-weight:700;color:var(--green);background:#e7f8f1;border-radius:999px;padding:5px 12px}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mcell{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
+.mcell .mv{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
+.mcell .ml{font-size:11.5px;color:var(--muted);margin-top:1px}
+.mcell.k .mv{color:var(--green)} .mcell.c .mv{color:var(--accent)} .mcell.p .mv{color:var(--accent2)} .mcell.f .mv{color:var(--amber)}
+.cyc{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.cyc button{border:1.5px solid var(--line);border-radius:12px;padding:9px 4px;text-align:center;font-size:12px;color:var(--muted);transition:.15s;background:#fff}
+.cyc button b{display:block;font-size:13px;color:var(--text);margin-bottom:1px}
+.cyc button:active{transform:scale(.96)}
+.cyc button.now{border-color:var(--accent);background:#f0f5ff;box-shadow:0 0 0 3px rgba(47,107,255,.08)}
+.cyc button.now b{color:var(--accent)}
+.cyc button small{font-size:10.5px}
+.cyc-hint{font-size:11.5px;color:#a6b0c5;text-align:center;margin-top:7px}
+.hero-ctl{margin-top:14px;padding-top:13px;border-top:1px dashed var(--line)}
+.ctl-label{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:6px}
+.ctl-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.ctl-row .ctl-label{margin-bottom:0}
+.ctl-row input[type=date]{border:1px solid var(--line);border-radius:10px;padding:7px 11px;background:#fafbfe;font-size:14px}
+
+/* seg */
+.seg{display:flex;background:#eef1f8;border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{padding:7px 10px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--muted);flex:1;white-space:nowrap}
+.seg button.on{background:#fff;color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* stepper */
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:#fafbfe;overflow:hidden}
+.stepper button{width:40px;align-self:stretch;min-height:42px;font-size:19px;color:var(--accent);font-weight:700;background:#f0f4fd;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.stepper button:active{background:#e2eafb}
+.stepper input{border:none;background:none;text-align:center;width:100%;min-width:0;font-size:16px;font-weight:600;padding:8px 2px}
+.stepper input:focus{outline:none}
+.stepper.mini button{width:27px;min-height:33px;font-size:15px}
+.stepper.mini input{font-size:13.5px;padding:5px 0}
+
+/* params */
+.calc-in{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:12px}
+.fld label{display:block;font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:5px}
+.fld select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fafbfe;font-size:15px;height:44px}
+.result-strip{display:flex;justify-content:space-around;background:#f7f9fd;border:1px solid var(--line);border-radius:12px;padding:11px 8px;margin-top:14px}
+.result-strip .ri{text-align:center}
+.result-strip .ri .rl{font-size:11.5px;color:var(--muted)}
+.result-strip .ri .rv{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:1px}
+.result-strip .ri .rv small{font-size:11px;font-weight:600;color:var(--muted)}
+
+/* stepper rows for tables */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{color:var(--muted);font-size:12px;font-weight:600}
+tr:last-child td{border-bottom:none}
+.tag{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11.5px;font-weight:700}
+.tag.hi{background:#e7f8f1;color:var(--green)} .tag.mid{background:#eef2fb;color:var(--accent)} .tag.lo{background:#fdf3e3;color:var(--amber)}
+.plan-note{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.7}
+details.sec{border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:10px;background:#fff;box-shadow:var(--shadow)}
+details.sec summary{font-weight:700;font-size:14.5px;cursor:pointer;user-select:none;display:flex;align-items:center;gap:9px;list-style:none}
+details.sec summary::-webkit-details-marker{display:none}
+details.sec summary::after{content:"";width:8px;height:8px;border-right:2px solid #b7c0d4;border-bottom:2px solid #b7c0d4;transform:rotate(45deg);margin-left:auto;transition:transform .2s;flex-shrink:0}
+details.sec[open] summary::after{transform:rotate(-135deg)}
+details.sec[open] summary{margin-bottom:10px}
+details.sec.cur{border-color:#bcd0ff;box-shadow:0 0 0 3px rgba(47,107,255,.06),var(--shadow)}
+.sum-badge{width:23px;height:23px;border-radius:8px;background:#eef2fb;color:var(--accent);font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.cur .sum-badge{background:linear-gradient(135deg,#2f6bff,#7c4dff);color:#fff}
+.sum-ico{width:23px;height:23px;border-radius:8px;background:#f3f0ff;color:var(--accent2);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.sum-ico svg{width:14px;height:14px}
+.now-chip{font-size:10.5px;font-weight:700;color:var(--accent);background:#eef2fb;border-radius:6px;padding:2px 7px;margin-left:2px}
+
+/* sub edit */
+details.sub{margin-top:10px;border:1px dashed var(--line);border-radius:10px;padding:9px 12px;background:#fafbfe}
+details.sub summary{font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:6px}
+details.sub summary::-webkit-details-marker{display:none}
+details.sub summary svg{width:13px;height:13px}
+details.sub[open] summary{margin-bottom:9px}
+.tgt-grid{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:6px;align-items:center;font-size:13px}
+.tgt-grid .g-h{font-size:11.5px;color:var(--muted);font-weight:600}
+
+/* steps */
+.steps{margin-top:2px}
+.step{display:flex;gap:13px;position:relative;padding-bottom:16px}
+.step::before{content:"";position:absolute;left:13px;top:30px;bottom:2px;width:2px;background:var(--line);border-radius:2px}
+.step:last-child{padding-bottom:0}
+.step:last-child::before{display:none}
+.step-n{width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,#2f6bff,#7c4dff);color:#fff;font-weight:800;font-size:12.5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(47,107,255,.3)}
+.step.alt .step-n{background:#eef2fb;color:var(--accent);box-shadow:none}
+.step-b{padding-top:3px}
+.step-b b{font-size:14.5px}
+.step-b span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.6}
+
+/* buttons */
+.btn{background:var(--accent);color:#fff;border-radius:10px;padding:9px 16px;font-size:14px;font-weight:700;transition:.12s}
+.btn:active{transform:scale(.96)}
+.btn.ghost{background:#eef2fb;color:var(--accent)}
+.btn.danger{background:#fdecec;color:var(--red)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn.w{width:100%}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+
+.foot{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.foot .plan-note{margin-top:0}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:#1a2233;color:#fff;border-radius:99px;padding:9px 20px;font-size:13.5px;opacity:0;pointer-events:none;transition:.25s;z-index:99;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:520px){
+.calc-in{grid-template-columns:1fr 1fr}.calc-in .fld.act{grid-column:1/-1}
+.mgrid{gap:6px}.mcell .mv{font-size:17px}
+.tgt-grid{grid-template-columns:repeat(3,1fr)}
+.tgt-grid .g-hl{display:none}
+.tgt-grid .g-l{grid-column:1/-1;margin-top:6px;font-size:12.5px!important}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="h-title">营养计划</div>
+    <div class="h-sub">碳循环 · 反向饮食 · 维持 · 增肌</div>
+  </div>
+</header>
+<div class="wrap" id="view"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ===================== 数据 ===================== */
+const LS_KEY = "fitPlanTracker.v1";
+const todayStr = () => { const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const parseD = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const addDays = (s,n) => { const d = parseD(s); d.setDate(d.getDate()+n); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const daysBetween = (a,b) => Math.round((parseD(b)-parseD(a))/86400000);
+const kcalOf = t => Math.round(t.p*4 + t.c*4 + t.f*9);
+
+const DEFAULT_TARGETS = {
+  cut: [
+    {label:"胸 + 三头 · 中碳", tag:"mid", p:160, c:230, f:70},
+    {label:"背 + 二头 · 中碳", tag:"mid", p:160, c:230, f:70},
+    {label:"肩 + 腿 · 高碳",  tag:"hi",  p:155, c:350, f:50},
+    {label:"休息日 · 低碳",   tag:"lo",  p:170, c:100, f:80}
+  ],
+  reverse: [
+    {label:"反向第 1 周", p:155, c:270, f:60},
+    {label:"反向第 2 周", p:150, c:300, f:62},
+    {label:"反向第 3 周", p:140, c:330, f:65},
+    {label:"反向第 4 周起", p:135, c:345, f:68}
+  ],
+  maintain: {label:"维持期 · 每日固定", p:135, c:345, f:68},
+  leanbulk: {label:"Lean Bulk · 每日固定", p:145, c:400, f:72},
+  maingain: {label:"Maingaining · 每日固定", p:140, c:370, f:70}
+};
+const PHASE_META = {
+  cut:      {name:"碳循环减脂",   badge:"1",  desc:"练3休1，4天一循环"},
+  reverse:  {name:"反向饮食",     badge:"2",  desc:"4周逐步加回热量"},
+  maintain: {name:"维持期",       badge:"3",  desc:"守住体重区间"},
+  leanbulk: {name:"Lean Bulk",    badge:"4a", desc:"维持+250 缓增"},
+  maingain: {name:"Maingaining",  badge:"4b", desc:"维持+125 省心"}
+};
+const PHASE_KEYS = Object.keys(PHASE_META);
+
+function defaultState(){
+  return {
+    phase: "cut",
+    phaseStart: todayStr(),
+    cycleStart: todayStr(),
+    targets: JSON.parse(JSON.stringify(DEFAULT_TARGETS)),
+    calc: {w:71, bf:12, act:1.45},
+    ui: {open:{cut:true}}
+  };
+}
+let S = load();
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return defaultState();
+    const s = JSON.parse(raw), d = defaultState();
+    const st = {
+      phase: PHASE_KEYS.includes(s.phase) ? s.phase : d.phase,
+      phaseStart: s.phaseStart || d.phaseStart,
+      cycleStart: s.cycleStart || d.cycleStart,
+      targets: s.targets || d.targets,
+      calc: Object.assign(d.calc, s.calc||{}),
+      ui: {open: (s.ui && s.ui.open) || {}}
+    };
+    if(st.ui.open[st.phase] === undefined) st.ui.open[st.phase] = true;
+    return st;
+  }catch(e){ return defaultState(); }
+}
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+
+/* ===================== 目标 & 计算器 ===================== */
+function getToday(){
+  const ph = S.phase;
+  if(ph === "cut"){
+    const i = ((daysBetween(S.cycleStart, todayStr()) % 4) + 4) % 4;
+    return Object.assign({idx:i, sub:"循环第 "+(i+1)+" 天"}, S.targets.cut[i]);
+  }
+  if(ph === "reverse"){
+    const w = Math.min(3, Math.max(0, Math.floor(daysBetween(S.phaseStart, todayStr())/7)));
+    return Object.assign({idx:w, sub:"第 "+(w+1)+" 周"}, S.targets.reverse[w]);
+  }
+  return Object.assign({idx:0, sub:"每日固定目标"}, S.targets[ph]);
+}
+/* 三步分配法：热量定盘子 → 蛋白/脂肪按体重定死 → 碳水拿剩余 */
+const r5 = x => Math.max(0, Math.round(x/5)*5);
+function calcPlan(w, bf, act){
+  const lean = w * (1 - bf/100);
+  const bmr = 370 + 21.6*lean;
+  const tdee = bmr * act;
+  const mk = (kcal, pk, fk) => {
+    const p = Math.round(w*pk), f = Math.round(w*fk);
+    return {p, c: Math.max(50, r5((kcal - p*4 - f*9)/4)), f};
+  };
+  return {
+    lean, bmr, tdee,
+    cut: [mk(tdee-350,2.25,1.0), mk(tdee-350,2.25,1.0), mk(tdee-100,2.2,0.7), mk(tdee-750,2.4,1.15)],
+    reverse: [mk(tdee-300,2.2,0.85), mk(tdee-200,2.1,0.88), mk(tdee-100,2.0,0.92), mk(tdee,1.95,0.95)],
+    maintain: mk(tdee,1.95,0.95),
+    leanbulk: mk(tdee+250,2.05,1.0),
+    maingain: mk(tdee+125,2.0,1.0)
+  };
+}
+
+/* ===================== 渲染 ===================== */
+const view = document.getElementById("view");
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 1800);
+}
+const ICO = {
+  route: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6.5a3.5 3.5 0 0 0 0-7h-7a3.5 3.5 0 0 1 0-7H15"/></svg>`,
+  bulb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg>`,
+  meat: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>`,
+  pin:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>`,
+  pen:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>`
+};
+const isOpen = k => !!S.ui.open[k];
+window.uiOpen = (k, v) => { S.ui.open[k] = v; save(); };
+
+function stepper(valAttr, changeExpr, minusExpr, plusExpr, mini){
+  return `<div class="stepper ${mini?"mini":""}">
+    <button type="button" onclick="${minusExpr}">−</button>
+    <input type="number" value="${valAttr}" onchange="${changeExpr}">
+    <button type="button" onclick="${plusExpr}">+</button>
+  </div>`;
+}
+
+function tgtRow(t){
+  return `<tr><td>${esc(t.label)}${t.tag?` <span class="tag ${t.tag}">${t.tag==="hi"?"高碳":t.tag==="mid"?"中碳":"低碳"}</span>`:""}</td>
+  <td>${t.c}g</td><td>${t.p}g</td><td>${t.f}g</td><td><b>${kcalOf(t)}</b></td></tr>`;
+}
+const MACRO_HEAD = "<th>碳水</th><th>蛋白</th><th>脂肪</th><th>kcal</th>";
+
+function heroCard(){
+  const t = getToday();
+  const d = new Date(), week = "日一二三四五六"[d.getDay()];
+  const isCut = S.phase==="cut", isRev = S.phase==="reverse";
+  let strip = "";
+  if(isCut){
+    const names = ["胸三头","背二头","肩 + 腿","休息"];
+    strip = `<div class="cyc">${S.targets.cut.map((c,i)=>`
+      <button class="${i===t.idx?"now":""}" onclick="setCycleDay(${i+1})"><b>${names[i]}</b><small>${kcalOf(c)} kcal</small></button>`).join("")}</div>
+    <div class="cyc-hint">点击卡片切换「今天是哪一天」</div>`;
+  }
+  return `<div class="card hero">
+    <div class="ht">
+      <div><div class="t1">${esc(t.label)}</div><div class="t2">${d.getMonth()+1}月${d.getDate()}日 周${week} · ${PHASE_META[S.phase].name} · ${t.sub}</div></div>
+    </div>
+    <div class="mgrid">
+      <div class="mcell k"><div class="mv">${kcalOf(t)}</div><div class="ml">热量 kcal</div></div>
+      <div class="mcell c"><div class="mv">${t.c}</div><div class="ml">碳水 g</div></div>
+      <div class="mcell p"><div class="mv">${t.p}</div><div class="ml">蛋白质 g</div></div>
+      <div class="mcell f"><div class="mv">${t.f}</div><div class="ml">脂肪 g</div></div>
+    </div>
+    ${strip}
+    <div class="hero-ctl">
+      <div class="ctl-label">当前阶段</div>
+      <div class="seg">${PHASE_KEYS.map(k=>`<button class="${S.phase===k?"on":""}" onclick="setPhase('${k}')">${PHASE_META[k].name}</button>`).join("")}</div>
+      ${isRev?`<div class="ctl-row"><span class="ctl-label">反向开始日期（决定第几周）</span>
+        <input type="date" value="${S.phaseStart}" max="${todayStr()}" onchange="setRevStart(this.value)"></div>`:""}
+    </div>
+  </div>`;
+}
+
+function paramsCard(){
+  const c = S.calc, plan = calcPlan(c.w, c.bf, c.act);
+  const ACTS = [{v:1.3,n:"久坐少动"},{v:1.45,n:"轻度活动"},{v:1.55,n:"中等活动"},{v:1.7,n:"高活动量"}];
+  return `<div class="card">
+    <h3>身体参数 <span class="h-extra">体重变了就回来重算一遍</span></h3>
+    <div class="calc-in">
+      <div class="fld"><label>体重 kg</label>
+        ${stepper(c.w, "setCalc('w',this.value)", "adjCalc('w',-0.5)", "adjCalc('w',0.5)")}</div>
+      <div class="fld"><label>体脂率 %</label>
+        ${stepper(c.bf, "setCalc('bf',this.value)", "adjCalc('bf',-0.5)", "adjCalc('bf',0.5)")}</div>
+      <div class="fld act"><label>日常活动量（训练外）</label>
+        <select onchange="setCalc('act',this.value)">
+          ${ACTS.map(a=>`<option value="${a.v}" ${Math.abs(c.act-a.v)<0.01?"selected":""}>${a.n}</option>`).join("")}
+        </select></div>
+    </div>
+    <div class="result-strip">
+      <div class="ri"><div class="rl">瘦体重</div><div class="rv">${plan.lean.toFixed(1)}<small> kg</small></div></div>
+      <div class="ri"><div class="rl">基础代谢</div><div class="rv">${Math.round(plan.bmr)}<small> kcal</small></div></div>
+      <div class="ri"><div class="rl">日总消耗 TDEE</div><div class="rv">${Math.round(plan.tdee)}<small> kcal</small></div></div>
+    </div>
+    <div class="btn-row"><button class="btn w" onclick="doApplyAll()">按参数重算全部阶段目标</button></div>
+    <div class="plan-note">BMR 按 Katch-McArdle 公式（基于瘦体重），TDEE = BMR × 活动系数。重算会覆盖下方所有阶段的数字（含手动微调），可先在页底导出备份。</div>
+  </div>`;
+}
+
+function editSub(key){
+  const cur = S.targets[key];
+  const rows = Array.isArray(cur) ? cur : [cur];
+  const ek = "edit_"+key;
+  return `<details class="sub" ${isOpen(ek)?"open":""} ontoggle="uiOpen('${ek}',this.open)">
+    <summary>${ICO.pen} 手动微调</summary>
+    <div class="tgt-grid">
+      <div class="g-h g-hl">日 / 周</div><div class="g-h">碳水 g</div><div class="g-h">蛋白 g</div><div class="g-h">脂肪 g</div>
+      ${rows.map((t,i)=>`
+        <div class="g-l" style="font-size:12px">${esc(t.label)} <small style="color:var(--muted)">· ${kcalOf(t)} kcal</small></div>
+        ${stepper(t.c, `setT('${key}',${i},'c',this.value)`, `adjT('${key}',${i},'c',-5)`, `adjT('${key}',${i},'c',5)`, true)}
+        ${stepper(t.p, `setT('${key}',${i},'p',this.value)`, `adjT('${key}',${i},'p',-5)`, `adjT('${key}',${i},'p',5)`, true)}
+        ${stepper(t.f, `setT('${key}',${i},'f',this.value)`, `adjT('${key}',${i},'f',-5)`, `adjT('${key}',${i},'f',5)`, true)}
+      `).join("")}
+    </div>
+    <div class="btn-row"><button class="btn ghost sm" onclick="resetTargets('${key}')">恢复此阶段默认值</button></div>
+  </details>`;
+}
+
+function phaseSec(key, note){
+  const meta = PHASE_META[key];
+  const cur = S.targets[key];
+  const rows = Array.isArray(cur) ? cur : [cur];
+  const isCur = S.phase===key;
+  const head = Array.isArray(cur) ? (key==="cut"?"<th>日</th>":"<th>周</th>") : "<th></th>";
+  return `<details class="sec ${isCur?"cur":""}" ${isOpen(key)?"open":""} ontoggle="uiOpen('${key}',this.open)">
+    <summary><span class="sum-badge">${meta.badge}</span>${meta.name}${isCur?'<span class="now-chip">当前</span>':""}</summary>
+    <table><tr>${head}${MACRO_HEAD}</tr>${rows.map(tgtRow).join("")}</table>
+    <div class="plan-note">${note}</div>
+    ${editSub(key)}
+  </details>`;
+}
+
+function render(){
+  view.innerHTML = `
+  ${heroCard()}
+  ${paramsCard()}
+
+  ${phaseSec("cut","高碳给腿日、低碳给休息日。训练日 60~70% 碳水放练前 2 小时 + 练后两餐；低碳日碳水来自蔬果和一餐主食。有氧放低碳/中碳日早上 30~40 分钟，或日行 8000~10000 步。每 4~6 周插一次 2~3 天 diet break（吃回维持热量）。12% → 10% 体脂预计 6~9 周。")}
+  ${phaseSec("reverse","每周热量 +100~150，主要加碳水，每天均等吃，不再循环。前两周体重回升 0.5~1kg 是糖原和水分，正常。")}
+  ${phaseSec("maintain","保留两个锚点：蛋白 ≥1.8g/kg + 每周固定称重 1~2 次。两周内涨超 1kg 则碳水 −30~40g，反之加回。精度从“克”降到“估”即可。")}
+  ${phaseSec("leanbulk","目标月增重 0.5~0.8kg，超了砍 100 kcal。体脂爬到 12~13% 后用 4~6 周 mini cut（可复用碳循环）回到 10%，循环往复，每轮肌肉净增加。")}
+  ${phaseSec("maingain","维持 +100~150 长期吃，增肌比 lean bulk 慢 30~50%，但体脂一年只飘 1~2 个点，基本不需要专门减脂期，最适合求长期可持续的人。")}
+
+  <details class="sec" ${isOpen("roadmap")?"open":""} ontoggle="uiOpen('roadmap',this.open)">
+    <summary><span class="sum-ico">${ICO.route}</span>阶段路线图</summary>
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div class="step-b"><b>碳循环减脂</b><span>12% → 10% 体脂，预计 6~9 周。</span></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-b"><b>反向饮食</b><span>4 周逐步加回热量爬到维持，避免快速反弹。</span></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-b"><b>维持期</b><span>稳定 4 周以上再决定下一步。</span></div></div>
+      <div class="step alt"><div class="step-n">4a</div><div class="step-b"><b>Lean Bulk（较快路线）</b><span>10 → 13% 体脂 4~6 个月，mini cut 回 10%，循环往复。</span></div></div>
+      <div class="step alt"><div class="step-n">4b</div><div class="step-b"><b>Maingaining（省心路线）</b><span>全年一套吃法，增肌慢些但无需专门减脂期。</span></div></div>
+    </div>
+  </details>
+
+  <details class="sec" ${isOpen("principle")?"open":""} ontoggle="uiOpen('principle',this.open)">
+    <summary><span class="sum-ico">${ICO.bulb}</span>三步分配法（原理）</summary>
+    <div class="plan-note" style="margin-top:0">
+    <b>第一步</b>：热量定总盘子——减脂 TDEE−400 / 维持 TDEE / 增肌 TDEE+250。<br>
+    <b>第二步</b>：蛋白和脂肪按体重定死。蛋白 1.6~2.2g/kg（缺口取高端抗分解，盈余取低端），脂肪底线 0.6~1g/kg（保激素），所以低碳日脂肪反而抬高——碳和脂不能同时低。<br>
+    <b>第三步</b>：碳水拿走剩余全部热量。碳水没有必需量，是唯一的能量调节阀，这就是碳循环“循环”的是碳的原因。</div>
+  </details>
+
+  <details class="sec" ${isOpen("protein")?"open":""} ontoggle="uiOpen('protein',this.open)">
+    <summary><span class="sum-ico">${ICO.meat}</span>蛋白质 130g+ 速查</summary>
+    <div class="plan-note" style="margin-top:0">
+    示例一天：早餐 3 个鸡蛋(20g) + 牛奶一杯(8g)；午餐 150g 鸡胸/牛肉(35g)；晚餐 150g 鱼虾(30g)；乳清 1 勺(25g) + 希腊酸奶(15g) ≈ <b>133g</b>，主食蔬菜还附带 10~15g。<br><br>
+    两条铁律：每餐主菜有一个手掌大的肉/鱼/蛋；备好蛋白粉，差多少补多少。看周平均即可，单日 110 不影响大局，但减脂期长期只吃 80g 会明显掉肌肉。</div>
+  </details>
+
+  <details class="sec" ${isOpen("tips")?"open":""} ontoggle="uiOpen('tips',this.open)">
+    <summary><span class="sum-ico">${ICO.pin}</span>关键提醒</summary>
+    <div class="plan-note" style="margin-top:0">
+    无法局部减脂，腹部腰部是男性最后掉的部位，12%→10% 靠整体缺口磨。顽固脂肪期常见 whoosh 现象：平台 1~2 周后突然掉，卡住先观察一周再砍热量。减脂期力量明显下滑是缺口过大或蛋白不足的信号。以上为通用推算，非医疗/营养师建议，以自己的体重趋势和训练表现为准微调。</div>
+  </details>
+
+  <div class="foot">
+    <div class="plan-note">设置保存在本浏览器 localStorage，清缓存会丢失，改动后建议导出备份。</div>
+    <div class="btn-row">
+      <button class="btn ghost sm" onclick="exportData()">导出备份</button>
+      <button class="btn ghost sm" onclick="document.getElementById('impFile').click()">导入备份</button>
+      <button class="btn danger sm" onclick="resetAll()">恢复出厂设置</button>
+      <input type="file" id="impFile" accept=".json,application/json" style="display:none" onchange="importData(this)">
+    </div>
+  </div>`;
+  save();
+}
+
+/* ===================== 交互 ===================== */
+window.setPhase = k => {
+  if(S.phase===k) return;
+  PHASE_KEYS.forEach(p=>S.ui.open[p]=false);
+  S.ui.open[k] = true;
+  S.phase = k; S.phaseStart = todayStr();
+  if(k==="cut") S.cycleStart = todayStr();
+  render(); toast("已切换到 " + PHASE_META[k].name);
+};
+window.setCycleDay = n => {
+  S.cycleStart = addDays(todayStr(), -(n-1));
+  render(); toast("今天设为：" + S.targets.cut[n-1].label);
+};
+window.setRevStart = v => {
+  if(!v || !/^\d{4}-\d{2}-\d{2}$/.test(v) || v > todayStr()){ render(); toast("日期无效"); return; }
+  S.phaseStart = v; render(); toast("已更新");
+};
+window.setCalc = (k,v) => {
+  const n = parseFloat(v);
+  if(!(n>0)){ render(); return; }
+  if(k==="w" && (n<35||n>200)){ toast("请输入有效体重"); render(); return; }
+  if(k==="bf" && (n<3||n>60)){ toast("请输入有效体脂率"); render(); return; }
+  S.calc[k] = Math.round(n*100)/100; render();
+};
+window.adjCalc = (k,d) => { setCalc(k, S.calc[k]+d); };
+window.doApplyAll = () => {
+  const plan = calcPlan(S.calc.w, S.calc.bf, S.calc.act);
+  PHASE_KEYS.forEach(key=>{
+    const src = plan[key], cur = S.targets[key];
+    if(Array.isArray(cur)) cur.forEach((t,i)=>{ t.p=src[i].p; t.c=src[i].c; t.f=src[i].f; });
+    else { cur.p=src.p; cur.c=src.c; cur.f=src.f; }
+  });
+  render(); toast("已按当前参数重算全部目标");
+};
+window.setT = (key,i,k,v) => {
+  const n = parseFloat(v);
+  if(!(n>=0)){ render(); return; }
+  const cur = S.targets[key];
+  (Array.isArray(cur)?cur[i]:cur)[k] = Math.round(n);
+  render();
+};
+window.adjT = (key,i,k,d) => {
+  const cur = S.targets[key];
+  const t = Array.isArray(cur)?cur[i]:cur;
+  setT(key, i, k, Math.max(0, (+t[k]||0) + d));
+};
+window.resetTargets = key => {
+  S.targets[key] = JSON.parse(JSON.stringify(DEFAULT_TARGETS[key]));
+  render(); toast("已恢复默认");
+};
+window.exportData = () => {
+  const blob = new Blob([JSON.stringify(S,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "nutrition-plan-backup-" + todayStr() + ".json";
+  a.click(); URL.revokeObjectURL(a.href);
+  toast("已导出备份");
+};
+window.importData = el => {
+  const file = el.files[0]; if(!file) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try{
+      const d = JSON.parse(fr.result);
+      if(!d.targets || !d.phase) throw new Error("bad");
+      S = d;
+      S.calc = Object.assign({w:71,bf:12,act:1.45}, d.calc||{});
+      S.ui = (d.ui && d.ui.open) ? d.ui : {open:{[d.phase]:true}};
+      render(); toast("导入成功");
+    }catch(e){ toast("导入失败：文件格式无效"); }
+  };
+  fr.readAsText(file); el.value="";
+};
+window.resetAll = () => {
+  if(!confirm("确定恢复出厂设置？所有自定义目标将丢失，建议先导出备份。")) return;
+  localStorage.removeItem(LS_KEY); S = defaultState(); render(); toast("已重置");
+};
+
+render();
+</script>
+</body>
+</html>
