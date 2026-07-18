@@ -1,0 +1,31 @@
+# ==========================================
+# macOS / Mac OS X 资源文件排除
+# ==========================================
+
+# 文件夹自定义图标、窗口位置等元数据
+.DS_Store
+
+# 在外接驱动器或网络共享上移动文件时生成的特殊目录
+.AppleDouble
+.LSOverride
+
+# Icon 文件 (带有尾随回车的特殊文件)
+Icon?
+
+# 拇指缓存/缩略图
+._*
+
+# Files that might be created on a Mac file system
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on external stores
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
