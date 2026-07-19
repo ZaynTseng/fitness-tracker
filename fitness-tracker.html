@@ -721,11 +721,18 @@
           transform: translateY(0);
         }
       }
+      details.sec.closing,
+      details.sub.closing {
+        overflow: hidden;
+      }
+      details.sec.closing > summary::after {
+        transform: rotate(45deg);
+      }
       details.sec.closing > :not(summary) {
-        animation: dtClose 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: dtClose 0.2s cubic-bezier(0.2, 0, 0, 1) forwards;
       }
       details.sub.closing > :not(summary) {
-        animation: dtClose 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation: dtClose 0.15s cubic-bezier(0.2, 0, 0, 1) forwards;
       }
       @keyframes dtClose {
         from {
@@ -734,7 +741,7 @@
         }
         to {
           opacity: 0;
-          transform: translateY(-4px);
+          transform: translateY(-6px);
         }
       }
       .mcell {
@@ -1320,15 +1327,19 @@
         e.preventDefault();
         details.classList.add('closing');
 
-        let done = false;
+        const contents = details.querySelectorAll(':scope > :not(summary)');
+        const anims = Array.from(contents).flatMap((el) => el.getAnimations());
+
         const finish = () => {
-          if (done) return;
-          done = true;
-          details.classList.remove('closing');
           details.open = false;
+          details.classList.remove('closing');
         };
-        details.addEventListener('animationend', finish, { once: true });
-        setTimeout(finish, 250); // fallback
+
+        if (anims.length) {
+          Promise.all(anims.map((a) => a.finished)).then(finish);
+        } else {
+          setTimeout(finish, 220);
+        }
       });
 
       render();
