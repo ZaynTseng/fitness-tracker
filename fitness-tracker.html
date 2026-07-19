@@ -714,26 +714,16 @@
       .result-strip .ri .rv {
         transition: color 0.2s ease;
       }
-      .mv {
-        overflow: hidden;
-        position: relative;
-      }
-      .roll-ghost {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-      }
-      @keyframes rollOutUp {
-        to { transform: translateY(-80%); filter: blur(3px); opacity: 0; }
-      }
-      @keyframes rollOutDown {
-        to { transform: translateY(80%); filter: blur(3px); opacity: 0; }
-      }
-      @keyframes rollInUp {
-        from { transform: translateY(80%); filter: blur(3px); opacity: 0; }
-      }
-      @keyframes rollInDown {
-        from { transform: translateY(-80%); filter: blur(3px); opacity: 0; }
+      .mcell.k { view-transition-name: cell-k; }
+      .mcell.c { view-transition-name: cell-c; }
+      .mcell.p { view-transition-name: cell-p; }
+      .mcell.f { view-transition-name: cell-f; }
+      .hero .t1 { view-transition-name: hero-title; }
+      .seg { view-transition-name: phase-seg; }
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation-duration: 0.15s;
+        animation-timing-function: ease;
       }
 
       @media (max-width: 520px) {
@@ -986,10 +976,10 @@
       <div><div class="t1">${esc(t.label)}</div><div class="t2">${d.getMonth() + 1}月${d.getDate()}日 周${week} · ${PHASE_META[S.phase].name} · ${t.sub}</div></div>
     </div>
     <div class="mgrid">
-      <div class="mcell k"><div class="mv" id="mv-k" data-v="${kcalOf(t)}">${kcalOf(t)}</div><div class="ml">热量 kcal</div></div>
-      <div class="mcell c"><div class="mv" id="mv-c" data-v="${t.c}">${t.c}</div><div class="ml">碳水 g</div></div>
-      <div class="mcell p"><div class="mv" id="mv-p" data-v="${t.p}">${t.p}</div><div class="ml">蛋白质 g</div></div>
-      <div class="mcell f"><div class="mv" id="mv-f" data-v="${t.f}">${t.f}</div><div class="ml">脂肪 g</div></div>
+      <div class="mcell k"><div class="mv">${kcalOf(t)}</div><div class="ml">热量 kcal</div></div>
+      <div class="mcell c"><div class="mv">${t.c}</div><div class="ml">碳水 g</div></div>
+      <div class="mcell p"><div class="mv">${t.p}</div><div class="ml">蛋白质 g</div></div>
+      <div class="mcell f"><div class="mv">${t.f}</div><div class="ml">脂肪 g</div></div>
     </div>
     ${strip}
     <div class="hero-ctl">
@@ -1077,30 +1067,8 @@
   </details>`;
       }
 
-      const _rollPrev = {};
-      function _rollNum(el, ov, nv) {
-        const up = nv > ov;
-        const d = '0.4s';
-        const e = 'cubic-bezier(0.16, 1, 0.3, 1)';
-        const txt = el.textContent;
-        const ghost = document.createElement('span');
-        ghost.textContent = ov;
-        ghost.className = 'roll-ghost';
-        ghost.style.animation = 'rollOut' + (up ? 'Up' : 'Down') + ' ' + d + ' ' + e + ' both';
-        const fresh = document.createElement('span');
-        fresh.textContent = txt;
-        fresh.style.display = 'block';
-        fresh.style.animation = 'rollIn' + (up ? 'Up' : 'Down') + ' ' + d + ' ' + e + ' both';
-        el.textContent = '';
-        el.appendChild(ghost);
-        el.appendChild(fresh);
-        fresh.addEventListener('animationend', () => { el.textContent = txt; }, { once: true });
-      }
       function render() {
-        ['k','c','p','f'].forEach(k => {
-          const el = document.getElementById('mv-' + k);
-          if (el) _rollPrev[k] = +el.dataset.v;
-        });
+        const update = () => {
         view.innerHTML = `
   ${heroCard()}
   ${paramsCard()}
@@ -1153,12 +1121,8 @@
     </div>
   </div>`;
         save();
-        ['k','c','p','f'].forEach(k => {
-          const el = document.getElementById('mv-' + k);
-          if (!el || _rollPrev[k] == null) return;
-          const nv = +el.dataset.v;
-          if (nv !== _rollPrev[k]) _rollNum(el, _rollPrev[k], nv);
-        });
+        };
+        document.startViewTransition ? document.startViewTransition(update) : update();
       }
 
       /* ===================== 交互 ===================== */
