@@ -1124,7 +1124,7 @@
           const selStart = fa && fa.selectionStart;
           const selEnd = fa && fa.selectionEnd;
           view.innerHTML = `
-  ${heroCard()}
+  <div id="heroWrap">${heroCard()}</div>
   ${paramsCard()}
 
   ${phaseSec("cut", "高碳给腿日、低碳给休息日。训练日 60~70% 碳水放练前 2 小时 + 练后两餐；低碳日碳水来自蔬果和一餐主食。有氧放低碳/中碳日早上 30~40 分钟，或日行 8000~10000 步。每 4~6 周插一次 2~3 天 diet break（吃回维持热量）。12% → 10% 体脂预计 6~9 周。")}
@@ -1189,6 +1189,13 @@
           : update();
       }
 
+      function renderHero() {
+        const w = document.getElementById('heroWrap');
+        if (!w) return render();
+        const update = () => { w.innerHTML = heroCard(); };
+        document.startViewTransition ? document.startViewTransition(update) : update();
+      }
+
       /* ===================== 交互 ===================== */
       window.setPhase = (k) => {
         if (S.phase === k) return;
@@ -1202,7 +1209,7 @@
       };
       window.setCycleDay = (n) => {
         S.cycleStart = addDays(todayStr(), -(n - 1));
-        save(); render();
+        save(); renderHero();
         toast("今天设为：" + S.targets.cut[n - 1].label);
       };
       window.setRevStart = (v) => {
