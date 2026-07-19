@@ -728,22 +728,6 @@
       details.sec.closing > summary::after {
         transform: rotate(45deg);
       }
-      details.sec.closing > :not(summary) {
-        animation: dtClose 0.2s cubic-bezier(0.2, 0, 0, 1) forwards;
-      }
-      details.sub.closing > :not(summary) {
-        animation: dtClose 0.15s cubic-bezier(0.2, 0, 0, 1) forwards;
-      }
-      @keyframes dtClose {
-        from {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        to {
-          opacity: 0;
-          transform: translateY(-6px);
-        }
-      }
       .mcell {
         transition:
           transform 0.15s ease,
@@ -1327,19 +1311,46 @@
         e.preventDefault();
         details.classList.add('closing');
 
-        const contents = details.querySelectorAll(':scope > :not(summary)');
-        const anims = Array.from(contents).flatMap((el) => el.getAnimations());
+        const startH = details.offsetHeight;
+        const cs = getComputedStyle(details);
+        const endH =
+          summary.offsetHeight +
+          parseFloat(cs.paddingTop) +
+          parseFloat(cs.paddingBottom) +
+          parseFloat(cs.borderTopWidth) +
+          parseFloat(cs.borderBottomWidth);
 
-        const finish = () => {
+        /* 内容淡出 */
+        const contents = details.querySelectorAll(':scope > :not(summary)');
+        contents.forEach((el) => {
+          el.style.transition = 'opacity .1s ease';
+          el.style.opacity = '0';
+        });
+
+        /* 高度坍缩（inline transition，不影响展开时的 dtOpen 动画） */
+        details.style.height = startH + 'px';
+        details.getBoundingClientRect();
+        details.style.transition = 'height .15s cubic-bezier(.32,.72,.28,1)';
+        details.style.height = endH + 'px';
+
+        let cleaned = false;
+        const cleanup = () => {
+          if (cleaned) return;
+          cleaned = true;
+          details.removeEventListener('transitionend', onEnd);
           details.open = false;
           details.classList.remove('closing');
+          details.style.cssText = '';
+          contents.forEach((el) => {
+            el.style.transition = '';
+            el.style.opacity = '';
+          });
         };
-
-        if (anims.length) {
-          Promise.all(anims.map((a) => a.finished)).then(finish);
-        } else {
-          setTimeout(finish, 220);
-        }
+        const onEnd = (ev) => {
+          if (ev.propertyName === 'height') cleanup();
+        };
+        details.addEventListener('transitionend', onEnd);
+        setTimeout(cleanup, 200);
       });
 
       render();
