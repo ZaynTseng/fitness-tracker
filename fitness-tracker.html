@@ -714,43 +714,26 @@
       .result-strip .ri .rv {
         transition: color 0.2s ease;
       }
-      .mv { overflow: hidden; position: relative; }
-      .droll { display: inline-flex; }
-      .dslot {
-        display: inline-block;
+      .mv {
         overflow: hidden;
         position: relative;
-        width: 1ch;
-        text-align: center;
       }
-      .dslot.ddot { width: 0.5ch; overflow: visible; }
-      .dghost { position: absolute; width: 100%; text-align: center; }
-      .dfresh { display: block; text-align: center; }
-      .roll-up .dghost { animation: dOutU 0.35s cubic-bezier(0.16,1,0.3,1) both; }
-      .roll-up .dfresh { animation: dInU 0.35s cubic-bezier(0.16,1,0.3,1) both; }
-      .roll-down .dghost { animation: dOutD 0.35s cubic-bezier(0.16,1,0.3,1) both; }
-      .roll-down .dfresh { animation: dInD 0.35s cubic-bezier(0.16,1,0.3,1) both; }
-      @keyframes dOutU { to { transform: translateY(-100%); filter: blur(2px); opacity: 0; } }
-      @keyframes dInU { from { transform: translateY(100%); filter: blur(2px); opacity: 0; } }
-      @keyframes dOutD { to { transform: translateY(100%); filter: blur(2px); opacity: 0; } }
-      @keyframes dInD { from { transform: translateY(-100%); filter: blur(2px); opacity: 0; } }
-      .step-val {
-        position: relative;
-        overflow: hidden;
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        align-items: center;
-      }
-      .step-roll {
+      .roll-ghost {
         position: absolute;
         inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         pointer-events: none;
-        z-index: 1;
-        font-variant-numeric: tabular-nums;
+      }
+      @keyframes rollOutUp {
+        to { transform: translateY(-80%); filter: blur(3px); opacity: 0; }
+      }
+      @keyframes rollOutDown {
+        to { transform: translateY(80%); filter: blur(3px); opacity: 0; }
+      }
+      @keyframes rollInUp {
+        from { transform: translateY(80%); filter: blur(3px); opacity: 0; }
+      }
+      @keyframes rollInDown {
+        from { transform: translateY(-80%); filter: blur(3px); opacity: 0; }
       }
 
       @media (max-width: 520px) {
@@ -967,10 +950,10 @@
         save();
       };
 
-      function stepper(valAttr, changeExpr, minusExpr, plusExpr, mini, rk) {
+      function stepper(valAttr, changeExpr, minusExpr, plusExpr, mini) {
         return `<div class="stepper ${mini ? "mini" : ""}">
     <button type="button" onclick="${minusExpr}">−</button>
-    <span class="step-val"><input type="number" value="${valAttr}" onchange="${changeExpr}"${rk ? ' data-rk="'+rk+'"' : ''}></span>
+    <input type="number" value="${valAttr}" onchange="${changeExpr}">
     <button type="button" onclick="${plusExpr}">+</button>
   </div>`;
       }
@@ -1035,9 +1018,9 @@
     <h3>身体参数</h3>
     <div class="calc-in">
       <div class="fld"><label>体重 kg</label>
-        ${stepper(c.w, "setCalc('w',this.value)", "adjCalc('w',-0.5)", "adjCalc('w',0.5)", false, 'calc-w')}</div>
+        ${stepper(c.w, "setCalc('w',this.value)", "adjCalc('w',-0.5)", "adjCalc('w',0.5)")}</div>
       <div class="fld"><label>体脂率 %</label>
-        ${stepper(c.bf, "setCalc('bf',this.value)", "adjCalc('bf',-0.5)", "adjCalc('bf',0.5)", false, 'calc-bf')}</div>
+        ${stepper(c.bf, "setCalc('bf',this.value)", "adjCalc('bf',-0.5)", "adjCalc('bf',0.5)")}</div>
       <div class="fld act"><label>日常活动量（训练外）</label>
         <select onchange="setCalc('act',this.value)">
           ${ACTS.map((a) => `<option value="${a.v}" ${Math.abs(c.act - a.v) < 0.01 ? "selected" : ""}>${a.n}</option>`).join("")}
@@ -1065,9 +1048,9 @@
         .map(
           (t, i) => `
         <div class="g-l" style="font-size:12px">${esc(t.label)} <small style="color:var(--muted)">· ${kcalOf(t)} kcal</small></div>
-        ${stepper(t.c, `setT('${key}',${i},'c',this.value)`, `adjT('${key}',${i},'c',-5)`, `adjT('${key}',${i},'c',5)`, true, `${key}-${i}-c`)}
-        ${stepper(t.p, `setT('${key}',${i},'p',this.value)`, `adjT('${key}',${i},'p',-5)`, `adjT('${key}',${i},'p',5)`, true, `${key}-${i}-p`)}
-        ${stepper(t.f, `setT('${key}',${i},'f',this.value)`, `adjT('${key}',${i},'f',-5)`, `adjT('${key}',${i},'f',5)`, true, `${key}-${i}-f`)}
+        ${stepper(t.c, `setT('${key}',${i},'c',this.value)`, `adjT('${key}',${i},'c',-5)`, `adjT('${key}',${i},'c',5)`, true)}
+        ${stepper(t.p, `setT('${key}',${i},'p',this.value)`, `adjT('${key}',${i},'p',-5)`, `adjT('${key}',${i},'p',5)`, true)}
+        ${stepper(t.f, `setT('${key}',${i},'f',this.value)`, `adjT('${key}',${i},'f',-5)`, `adjT('${key}',${i},'f',5)`, true)}
       `,
         )
         .join("")}
@@ -1094,52 +1077,30 @@
   </details>`;
       }
 
-      const _rollPrev = {}, _stepPrev = {};
-      function _rollDigits(el, ov, nv) {
+      const _rollPrev = {};
+      function _rollNum(el, ov, nv) {
         const up = nv > ov;
-        const os = String(ov), ns = String(nv);
-        const oi = os.indexOf('.'), ni = ns.indexOf('.');
-        const oI = oi<0?os:os.slice(0,oi), nI = ni<0?ns:ns.slice(0,ni);
-        const oD = oi<0?'':os.slice(oi+1), nD = ni<0?'':ns.slice(ni+1);
-        const il = Math.max(oI.length, nI.length), dl = Math.max(oD.length, nD.length);
-        const op = oI.padStart(il)+(dl?'.'+oD.padEnd(dl,'0'):'');
-        const np = nI.padStart(il)+(dl?'.'+nD.padEnd(dl,'0'):'');
-        let h = '', cnt = 0, digs = np.replace(/\./g,'').length, dp = digs;
-        for (let i = 0; i < np.length; i++) {
-          if (np[i]==='.') { h+='<span class="dslot ddot">.</span>'; continue; }
-          dp--;
-          if (op[i]===np[i]&&op[i]!==' ') { h+='<span class="dslot">'+np[i]+'</span>'; }
-          else {
-            const dy = dp*30, od = (!op[i]||op[i]===' ')?'&nbsp;':op[i];
-            h+='<span class="dslot"><span class="dghost" style="animation-delay:'+dy+'ms">'+od+'</span><span class="dfresh" style="animation-delay:'+dy+'ms">'+np[i]+'</span></span>';
-            cnt++;
-          }
-        }
-        if (!cnt) return null;
-        el.innerHTML = '<span class="droll '+(up?'roll-up':'roll-down')+'">'+h+'</span>';
-        return el.querySelector('.dfresh');
-      }
-      function _rollInput(inp, ov, nv) {
-        const wrap = inp.closest('.step-val');
-        if (!wrap) return;
-        const overlay = document.createElement('div');
-        overlay.className = 'step-roll';
-        const cs = getComputedStyle(inp);
-        overlay.style.fontSize = cs.fontSize;
-        overlay.style.fontWeight = cs.fontWeight;
-        overlay.style.color = cs.color;
-        const f = _rollDigits(overlay, ov, nv);
-        if (!f) return;
-        inp.style.color = 'transparent';
-        wrap.appendChild(overlay);
-        f.addEventListener('animationend', () => { inp.style.color = ''; overlay.remove(); }, { once: true });
+        const d = '0.4s';
+        const e = 'cubic-bezier(0.16, 1, 0.3, 1)';
+        const txt = el.textContent;
+        const ghost = document.createElement('span');
+        ghost.textContent = ov;
+        ghost.className = 'roll-ghost';
+        ghost.style.animation = 'rollOut' + (up ? 'Up' : 'Down') + ' ' + d + ' ' + e + ' both';
+        const fresh = document.createElement('span');
+        fresh.textContent = txt;
+        fresh.style.display = 'block';
+        fresh.style.animation = 'rollIn' + (up ? 'Up' : 'Down') + ' ' + d + ' ' + e + ' both';
+        el.textContent = '';
+        el.appendChild(ghost);
+        el.appendChild(fresh);
+        fresh.addEventListener('animationend', () => { el.textContent = txt; }, { once: true });
       }
       function render() {
         ['k','c','p','f'].forEach(k => {
           const el = document.getElementById('mv-' + k);
           if (el) _rollPrev[k] = +el.dataset.v;
         });
-        document.querySelectorAll('[data-rk]').forEach(inp => { _stepPrev[inp.dataset.rk] = +inp.value; });
         view.innerHTML = `
   ${heroCard()}
   ${paramsCard()}
@@ -1196,14 +1157,7 @@
           const el = document.getElementById('mv-' + k);
           if (!el || _rollPrev[k] == null) return;
           const nv = +el.dataset.v;
-          if (nv !== _rollPrev[k]) {
-            const f = _rollDigits(el, _rollPrev[k], nv);
-            if (f) f.addEventListener('animationend', () => { el.textContent = String(nv); }, { once: true });
-          }
-        });
-        document.querySelectorAll('[data-rk]').forEach(inp => {
-          const rk = inp.dataset.rk, nv = +inp.value;
-          if (_stepPrev[rk] != null && nv !== _stepPrev[rk]) _rollInput(inp, _stepPrev[rk], nv);
+          if (nv !== _rollPrev[k]) _rollNum(el, _rollPrev[k], nv);
         });
       }
 
