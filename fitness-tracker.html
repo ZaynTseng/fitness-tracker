@@ -1062,8 +1062,7 @@
       <div class="ri"><div class="rl">基础代谢</div><div class="rv">${Math.round(plan.bmr)}<small> kcal</small></div></div>
       <div class="ri"><div class="rl">日总消耗 TDEE</div><div class="rv">${Math.round(plan.tdee)}<small> kcal</small></div></div>
     </div>
-    <div class="plan-note">BMR 按 Katch-McArdle 公式（基于瘦体重），TDEE = BMR × 活动系数。重算会覆盖下方所有阶段的数字（含手动微调），可先在页底导出备份。</div>
-    <div class="btn-row"><button class="btn ghost" onclick="doApplyAll()">按参数更新全部阶段目标</button></div>
+    <div class="plan-note">BMR 按 Katch-McArdle 公式（基于瘦体重），TDEE = BMR × 活动系数。修改参数会自动更新所有阶段目标。</div>
   </div>`;
       }
 
@@ -1225,30 +1224,11 @@
           return;
         }
         S.calc[k] = Math.round(n * 100) / 100;
+        S.targets = calcTargets(S.calc);
         save(); render();
       };
       window.adjCalc = (k, d) => {
         setCalc(k, S.calc[k] + d);
-      };
-      window.doApplyAll = () => {
-        const plan = calcPlan(S.calc.w, S.calc.bf, S.calc.act);
-        PHASE_KEYS.forEach((key) => {
-          const src = plan[key],
-            cur = S.targets[key];
-          if (Array.isArray(cur))
-            cur.forEach((t, i) => {
-              t.p = src[i].p;
-              t.c = src[i].c;
-              t.f = src[i].f;
-            });
-          else {
-            cur.p = src.p;
-            cur.c = src.c;
-            cur.f = src.f;
-          }
-        });
-        save(); render();
-        toast("已按当前参数重算全部目标");
       };
       window.setT = (key, i, k, v) => {
         const n = parseFloat(v);
