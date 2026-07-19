@@ -104,6 +104,11 @@
         justify-content: space-between;
         align-items: center;
       }
+      .card h3 .h-extra {
+        font-size: 12px;
+        font-weight: 500;
+      }
+
       /* hero */
       .hero {
         background: linear-gradient(135deg, #ffffff, #f6f9ff);
@@ -125,6 +130,14 @@
         font-size: 12.5px;
         color: var(--muted);
         margin-top: 2px;
+      }
+      .kcal-pill {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--green);
+        background: #e7f8f1;
+        border-radius: 999px;
+        padding: 5px 12px;
       }
       .mgrid {
         display: grid;
@@ -195,6 +208,12 @@
       }
       .cyc button small {
         font-size: 10.5px;
+      }
+      .cyc-hint {
+        font-size: 11.5px;
+        color: #a6b0c5;
+        text-align: center;
+        margin-top: 7px;
       }
       .hero-ctl {
         margin-top: 14px;
@@ -286,13 +305,6 @@
       }
       .stepper input:focus {
         outline: none;
-        box-shadow: inset 0 0 0 2px rgba(47, 107, 255, 0.3);
-        border-radius: 2px;
-      }
-      .fld select:focus {
-        outline: none;
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(47, 107, 255, 0.1);
       }
       .stepper.mini button {
         width: 27px;
@@ -328,7 +340,6 @@
         -webkit-appearance: none;
         -moz-appearance: none;
         appearance: none;
-        cursor: pointer;
       }
       .result-strip {
         display: flex;
@@ -440,7 +451,8 @@
         transform: rotate(-135deg);
       }
       details.sec[open] summary {
-        margin-bottom: 10px;
+        margin-top: 5px;
+        margin-bottom: 5px;
       }
       details.sec.cur {
         border-color: #bcd0ff;
@@ -618,6 +630,9 @@
       .btn.sm {
         padding: 6px 12px;
         font-size: 13px;
+      }
+      .btn.w {
+        width: 100%;
       }
       .btn-row {
         display: flex;
@@ -876,9 +891,9 @@
   </div>`;
       }
 
-      function tgtRow(t, showLabel) {
-        const labelTd = showLabel ? `<td>${esc(t.label)}${t.tag ? ` <span class="tag ${t.tag}">${t.tag === "hi" ? "高碳" : t.tag === "mid" ? "中碳" : "低碳"}</span>` : ""}</td>` : "";
-        return `<tr>${labelTd}<td>${t.c}g</td><td>${t.p}g</td><td>${t.f}g</td><td><b>${kcalOf(t)}</b></td></tr>`;
+      function tgtRow(t) {
+        return `<tr><td>${esc(t.label)}${t.tag ? ` <span class="tag ${t.tag}">${t.tag === "hi" ? "高碳" : t.tag === "mid" ? "中碳" : "低碳"}</span>` : ""}</td>
+  <td>${t.c}g</td><td>${t.p}g</td><td>${t.f}g</td><td><b>${kcalOf(t)}</b></td></tr>`;
       }
       const MACRO_HEAD = "<th>碳水</th><th>蛋白</th><th>脂肪</th><th>kcal</th>";
 
@@ -986,10 +1001,10 @@
           ? key === "cut"
             ? "<th>日</th>"
             : "<th>周</th>"
-          : "";
+          : "<th></th>";
         return `<details class="sec ${isCur ? "cur" : ""}" ${isOpen(key) ? "open" : ""} ontoggle="uiOpen('${key}',this.open)">
     <summary><span class="sum-badge">${meta.badge}</span>${meta.name}${isCur ? '<span class="now-chip">当前</span>' : ""}</summary>
-    <table><tr>${head}${MACRO_HEAD}</tr>${rows.map(r => tgtRow(r, Array.isArray(cur))).join("")}</table>
+    <table><tr>${head}${MACRO_HEAD}</tr>${rows.map(tgtRow).join("")}</table>
     <div class="plan-note">${note}</div>
     ${editSub(key)}
   </details>`;
