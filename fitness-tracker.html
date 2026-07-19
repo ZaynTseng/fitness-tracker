@@ -1099,6 +1099,12 @@
 
       function render() {
         const update = () => {
+          const fa = document.activeElement;
+          const focusAttr = fa && view.contains(fa)
+            ? (fa.getAttribute('onchange') || fa.getAttribute('onclick'))
+            : null;
+          const selStart = fa && fa.selectionStart;
+          const selEnd = fa && fa.selectionEnd;
           view.innerHTML = `
   ${heroCard()}
   ${paramsCard()}
@@ -1116,7 +1122,7 @@
       <div class="step"><div class="step-n">2</div><div class="step-b"><b>反向饮食 Reverse Diet（每周 +100~150）</b><span>4 周逐步加回热量爬到维持，避免快速反弹。</span></div></div>
       <div class="step"><div class="step-n">3</div><div class="step-b"><b>体态重组 Recomp（盈余 0）</b><span>稳定 4 周以上再决定下一步。</span></div></div>
       <div class="step alt"><div class="step-n">4a</div><div class="step-b"><b>干净增肌 Lean Bulk（较快路线，盈余 +200~300）</b><span>10 → 13% 体脂 4~6 个月，mini cut 回 10%，循环往复。</span></div></div>
-      <div class="step alt"><div class="step-n">4b</div><div class="step-b"><b>维持增肌 Maingaining（省心路线，盈余 ±100）</b><span>全年一套吃法，增肌慢些但无需专门减脂期。</span></div></div>
+      <div class="step alt"><div class="step-n">4b</div><div class="step-b"><b>维持增肌 Maingaining（省心路线，盈余 +100~150）</b><span>全年一套吃法，增肌慢些但无需专门减脂期。</span></div></div>
     </div>
   </details>
 
@@ -1150,7 +1156,15 @@
       <input type="file" id="impFile" accept=".json,application/json" style="display:none" onchange="importData(this)">
     </div>
   </div>`;
-          save();
+          if (focusAttr) {
+            for (const el of view.querySelectorAll('input,button')) {
+              if ((el.getAttribute('onchange') || el.getAttribute('onclick')) === focusAttr) {
+                el.focus();
+                try { if (selStart != null) { el.selectionStart = selStart; el.selectionEnd = selEnd; } } catch(e){}
+                break;
+              }
+            }
+          }
         };
         document.startViewTransition
           ? document.startViewTransition(update)
@@ -1165,12 +1179,12 @@
         S.phase = k;
         S.phaseStart = todayStr();
         if (k === "cut") S.cycleStart = todayStr();
-        render();
+        save(); render();
         toast("已切换到 " + PHASE_META[k].name);
       };
       window.setCycleDay = (n) => {
         S.cycleStart = addDays(todayStr(), -(n - 1));
-        render();
+        save(); render();
         toast("今天设为：" + S.targets.cut[n - 1].label);
       };
       window.setRevStart = (v) => {
@@ -1180,7 +1194,7 @@
           return;
         }
         S.phaseStart = v;
-        render();
+        save(); render();
         toast("已更新");
       };
       window.setCalc = (k, v) => {
@@ -1200,7 +1214,7 @@
           return;
         }
         S.calc[k] = Math.round(n * 100) / 100;
-        render();
+        save(); render();
       };
       window.adjCalc = (k, d) => {
         setCalc(k, S.calc[k] + d);
@@ -1222,7 +1236,7 @@
             cur.f = src.f;
           }
         });
-        render();
+        save(); render();
         toast("已按当前参数重算全部目标");
       };
       window.setT = (key, i, k, v) => {
@@ -1233,7 +1247,7 @@
         }
         const cur = S.targets[key];
         (Array.isArray(cur) ? cur[i] : cur)[k] = Math.round(n);
-        render();
+        save(); render();
       };
       window.adjT = (key, i, k, d) => {
         const cur = S.targets[key];
@@ -1242,7 +1256,7 @@
       };
       window.resetTargets = (key) => {
         S.targets[key] = JSON.parse(JSON.stringify(DEFAULT_TARGETS[key]));
-        render();
+        save(); render();
         toast("已恢复默认");
       };
       window.exportData = () => {
@@ -1265,9 +1279,9 @@
             const d = JSON.parse(fr.result);
             if (!d.targets || !d.phase) throw new Error("bad");
             S = d;
-            S.calc = Object.assign({ w: 71, bf: 12, act: 1.45 }, d.calc || {});
+            S.calc = Object.assign({ w: 70, bf: 12, act: 1.45 }, d.calc || {});
             S.ui = d.ui && d.ui.open ? d.ui : { open: { [d.phase]: true } };
-            render();
+            save(); render();
             toast("导入成功");
           } catch (e) {
             toast("导入失败：文件格式无效");
@@ -1283,7 +1297,7 @@
           return;
         localStorage.removeItem(LS_KEY);
         S = defaultState();
-        render();
+        save(); render();
         toast("已重置");
       };
 
