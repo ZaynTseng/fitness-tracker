@@ -852,6 +852,39 @@
       };
       const PHASE_KEYS = Object.keys(PHASE_META);
 
+      /* 三步分配法：热量定盘子 → 蛋白/脂肪按体重定死 → 碳水拿剩余 */
+      const r5 = (x) => Math.max(0, Math.round(x / 5) * 5);
+      function calcPlan(w, bf, act) {
+        const lean = w * (1 - bf / 100);
+        const bmr = 370 + 21.6 * lean;
+        const tdee = bmr * act;
+        const mk = (kcal, pk, fk) => {
+          const p = Math.round(w * pk),
+            f = Math.round(w * fk);
+          return { p, c: Math.max(50, r5((kcal - p * 4 - f * 9) / 4)), f };
+        };
+        return {
+          lean,
+          bmr,
+          tdee,
+          cut: [
+            mk(tdee - 350, 2.25, 1.0),
+            mk(tdee - 350, 2.25, 1.0),
+            mk(tdee - 100, 2.2, 0.7),
+            mk(tdee - 750, 2.4, 1.15),
+          ],
+          reverse: [
+            mk(tdee - 300, 2.2, 0.85),
+            mk(tdee - 200, 2.1, 0.88),
+            mk(tdee - 100, 2.0, 0.92),
+            mk(tdee, 1.95, 0.95),
+          ],
+          maintain: mk(tdee, 1.95, 0.95),
+          leanbulk: mk(tdee + 250, 2.05, 1.0),
+          maingain: mk(tdee + 125, 2.0, 1.0),
+        };
+      }
+
       function calcTargets(calc) {
         const tpl = JSON.parse(JSON.stringify(DEFAULT_TARGETS));
         const plan = calcPlan(calc.w, calc.bf, calc.act);
@@ -920,39 +953,6 @@
         }
         return Object.assign({ idx: 0, sub: "每日固定目标" }, S.targets[ph]);
       }
-      /* 三步分配法：热量定盘子 → 蛋白/脂肪按体重定死 → 碳水拿剩余 */
-      const r5 = (x) => Math.max(0, Math.round(x / 5) * 5);
-      function calcPlan(w, bf, act) {
-        const lean = w * (1 - bf / 100);
-        const bmr = 370 + 21.6 * lean;
-        const tdee = bmr * act;
-        const mk = (kcal, pk, fk) => {
-          const p = Math.round(w * pk),
-            f = Math.round(w * fk);
-          return { p, c: Math.max(50, r5((kcal - p * 4 - f * 9) / 4)), f };
-        };
-        return {
-          lean,
-          bmr,
-          tdee,
-          cut: [
-            mk(tdee - 350, 2.25, 1.0),
-            mk(tdee - 350, 2.25, 1.0),
-            mk(tdee - 100, 2.2, 0.7),
-            mk(tdee - 750, 2.4, 1.15),
-          ],
-          reverse: [
-            mk(tdee - 300, 2.2, 0.85),
-            mk(tdee - 200, 2.1, 0.88),
-            mk(tdee - 100, 2.0, 0.92),
-            mk(tdee, 1.95, 0.95),
-          ],
-          maintain: mk(tdee, 1.95, 0.95),
-          leanbulk: mk(tdee + 250, 2.05, 1.0),
-          maingain: mk(tdee + 125, 2.0, 1.0),
-        };
-      }
-
       /* ===================== 渲染 ===================== */
       const view = document.getElementById("view");
       const esc = (s) =>
