@@ -852,13 +852,24 @@
       };
       const PHASE_KEYS = Object.keys(PHASE_META);
 
+      function calcTargets(calc) {
+        const tpl = JSON.parse(JSON.stringify(DEFAULT_TARGETS));
+        const plan = calcPlan(calc.w, calc.bf, calc.act);
+        PHASE_KEYS.forEach((key) => {
+          const src = plan[key], cur = tpl[key];
+          if (Array.isArray(cur)) cur.forEach((t, i) => { t.p = src[i].p; t.c = src[i].c; t.f = src[i].f; });
+          else { cur.p = src.p; cur.c = src.c; cur.f = src.f; }
+        });
+        return tpl;
+      }
       function defaultState() {
+        const calc = { w: 70, bf: 12, act: 1.45 };
         return {
           phase: "cut",
           phaseStart: todayStr(),
           cycleStart: todayStr(),
-          targets: JSON.parse(JSON.stringify(DEFAULT_TARGETS)),
-          calc: { w: 70, bf: 12, act: 1.45 },
+          targets: calcTargets(calc),
+          calc,
           ui: { open: { cut: true } },
         };
       }
@@ -1255,7 +1266,8 @@
         setT(key, i, k, Math.max(0, (+t[k] || 0) + d));
       };
       window.resetTargets = (key) => {
-        S.targets[key] = JSON.parse(JSON.stringify(DEFAULT_TARGETS[key]));
+        const fresh = calcTargets(S.calc);
+        S.targets[key] = fresh[key];
         save(); render();
         toast("已恢复默认");
       };
