@@ -721,6 +721,22 @@
           transform: translateY(0);
         }
       }
+      details.sec.closing > :not(summary) {
+        animation: dtClose 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+      details.sub.closing > :not(summary) {
+        animation: dtClose 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+      @keyframes dtClose {
+        from {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+      }
       .mcell {
         transition:
           transform 0.15s ease,
@@ -826,22 +842,23 @@
         Math.round((parseD(b) - parseD(a)) / 86400000);
       const kcalOf = (t) => Math.round(t.p * 4 + t.c * 4 + t.f * 9);
 
+      /* p/c/f 由 calcTargets() 根据身体参数实时计算填入，此处仅保留标签模板 */
       const DEFAULT_TARGETS = {
         cut: [
-          { label: "胸 + 三头 · 中碳", tag: "mid", p: 160, c: 230, f: 70 },
-          { label: "背 + 二头 · 中碳", tag: "mid", p: 160, c: 230, f: 70 },
-          { label: "肩 + 腿 · 高碳", tag: "hi", p: 155, c: 350, f: 50 },
-          { label: "休息日 · 低碳", tag: "lo", p: 170, c: 100, f: 80 },
+          { label: "胸 + 三头 · 中碳", tag: "mid" },
+          { label: "背 + 二头 · 中碳", tag: "mid" },
+          { label: "肩 + 腿 · 高碳", tag: "hi" },
+          { label: "休息日 · 低碳", tag: "lo" },
         ],
         reverse: [
-          { label: "反向第 1 周", p: 155, c: 270, f: 60 },
-          { label: "反向第 2 周", p: 150, c: 300, f: 62 },
-          { label: "反向第 3 周", p: 140, c: 330, f: 65 },
-          { label: "反向第 4 周起", p: 135, c: 345, f: 68 },
+          { label: "反向第 1 周" },
+          { label: "反向第 2 周" },
+          { label: "反向第 3 周" },
+          { label: "反向第 4 周起" },
         ],
-        maintain: { label: "体态重组 · 每日固定", p: 135, c: 345, f: 68 },
-        leanbulk: { label: "干净增肌 · 每日固定", p: 145, c: 400, f: 72 },
-        maingain: { label: "维持增肌 · 每日固定", p: 140, c: 370, f: 70 },
+        maintain: { label: "体态重组 · 每日固定" },
+        leanbulk: { label: "干净增肌 · 每日固定" },
+        maingain: { label: "维持增肌 · 每日固定" },
       };
       const PHASE_META = {
         cut: { name: "碳循环减脂", badge: "1", desc: "练3休1，4天一循环" },
@@ -1292,6 +1309,27 @@
         save(); render();
         toast("已重置");
       };
+
+      /* ---- 收起动画：拦截关闭点击，播完动画再移除 open ---- */
+      document.addEventListener('click', (e) => {
+        const summary = e.target.closest('details.sec > summary, details.sub > summary');
+        if (!summary) return;
+        const details = summary.parentElement;
+        if (!details.open || details.classList.contains('closing')) return;
+
+        e.preventDefault();
+        details.classList.add('closing');
+
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          details.classList.remove('closing');
+          details.open = false;
+        };
+        details.addEventListener('animationend', finish, { once: true });
+        setTimeout(finish, 250); // fallback
+      });
 
       render();
     </script>
