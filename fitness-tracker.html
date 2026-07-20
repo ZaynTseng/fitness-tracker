@@ -897,9 +897,19 @@
         const tpl = JSON.parse(JSON.stringify(DEFAULT_TARGETS));
         const plan = calcPlan(calc.w, calc.bf, calc.act);
         PHASE_KEYS.forEach((key) => {
-          const src = plan[key], cur = tpl[key];
-          if (Array.isArray(cur)) cur.forEach((t, i) => { t.p = src[i].p; t.c = src[i].c; t.f = src[i].f; });
-          else { cur.p = src.p; cur.c = src.c; cur.f = src.f; }
+          const src = plan[key],
+            cur = tpl[key];
+          if (Array.isArray(cur))
+            cur.forEach((t, i) => {
+              t.p = src[i].p;
+              t.c = src[i].c;
+              t.f = src[i].f;
+            });
+          else {
+            cur.p = src.p;
+            cur.c = src.c;
+            cur.f = src.f;
+          }
         });
         return tpl;
       }
@@ -1118,9 +1128,10 @@
       function render() {
         const update = () => {
           const fa = document.activeElement;
-          const focusAttr = fa && view.contains(fa)
-            ? (fa.getAttribute('onchange') || fa.getAttribute('onclick'))
-            : null;
+          const focusAttr =
+            fa && view.contains(fa)
+              ? fa.getAttribute("onchange") || fa.getAttribute("onclick")
+              : null;
           const selStart = fa && fa.selectionStart;
           const selEnd = fa && fa.selectionEnd;
           view.innerHTML = `
@@ -1136,7 +1147,7 @@
   <details class="sec" ${isOpen("roadmap") ? "open" : ""} ontoggle="uiOpen('roadmap',this.open)">
     <summary><span class="sum-ico">${ICO.route}</span>阶段路线图</summary>
     <div class="steps">
-      <div class="step"><div class="step-n">1</div><div class="step-b"><b>碳循环减脂 Carb Cycling</b><span>12% → 10% 体脂，预计 6~9 周。</span></div></div>
+      <div class="step"><div class="step-n">1</div><div class="step-b"><b>碳循环减脂 Carb Cycling（盈余 -400）</b><span>12% → 10% 体脂，预计 6~9 周。</span></div></div>
       <div class="step"><div class="step-n">2</div><div class="step-b"><b>反向饮食 Reverse Diet（每周 +100~150）</b><span>4 周逐步加回热量爬到维持，避免快速反弹。</span></div></div>
       <div class="step"><div class="step-n">3</div><div class="step-b"><b>体态重组 Recomp（盈余 0）</b><span>稳定 4 周以上再决定下一步。</span></div></div>
       <div class="step alt"><div class="step-n">4a</div><div class="step-b"><b>干净增肌 Lean Bulk（较快路线，盈余 +200~300）</b><span>10 → 13% 体脂 4~6 个月，mini cut 回 10%，循环往复。</span></div></div>
@@ -1175,10 +1186,18 @@
     </div>
   </div>`;
           if (focusAttr) {
-            for (const el of view.querySelectorAll('input,button')) {
-              if ((el.getAttribute('onchange') || el.getAttribute('onclick')) === focusAttr) {
+            for (const el of view.querySelectorAll("input,button")) {
+              if (
+                (el.getAttribute("onchange") || el.getAttribute("onclick")) ===
+                focusAttr
+              ) {
                 el.focus();
-                try { if (selStart != null) { el.selectionStart = selStart; el.selectionEnd = selEnd; } } catch(e){}
+                try {
+                  if (selStart != null) {
+                    el.selectionStart = selStart;
+                    el.selectionEnd = selEnd;
+                  }
+                } catch (e) {}
                 break;
               }
             }
@@ -1190,10 +1209,14 @@
       }
 
       function renderHero() {
-        const w = document.getElementById('heroWrap');
+        const w = document.getElementById("heroWrap");
         if (!w) return render();
-        const update = () => { w.innerHTML = heroCard(); };
-        document.startViewTransition ? document.startViewTransition(update) : update();
+        const update = () => {
+          w.innerHTML = heroCard();
+        };
+        document.startViewTransition
+          ? document.startViewTransition(update)
+          : update();
       }
 
       /* ===================== 交互 ===================== */
@@ -1204,12 +1227,14 @@
         S.phase = k;
         S.phaseStart = todayStr();
         if (k === "cut") S.cycleStart = todayStr();
-        save(); render();
+        save();
+        render();
         toast("已切换到 " + PHASE_META[k].name);
       };
       window.setCycleDay = (n) => {
         S.cycleStart = addDays(todayStr(), -(n - 1));
-        save(); renderHero();
+        save();
+        renderHero();
         toast("今天设为：" + S.targets.cut[n - 1].label);
       };
       window.setRevStart = (v) => {
@@ -1219,7 +1244,8 @@
           return;
         }
         S.phaseStart = v;
-        save(); render();
+        save();
+        render();
         toast("已更新");
       };
       window.setCalc = (k, v) => {
@@ -1240,7 +1266,8 @@
         }
         S.calc[k] = Math.round(n * 100) / 100;
         S.targets = calcTargets(S.calc);
-        save(); render();
+        save();
+        render();
       };
       window.adjCalc = (k, d) => {
         setCalc(k, S.calc[k] + d);
@@ -1253,7 +1280,8 @@
         }
         const cur = S.targets[key];
         (Array.isArray(cur) ? cur[i] : cur)[k] = Math.round(n);
-        save(); render();
+        save();
+        render();
       };
       window.adjT = (key, i, k, d) => {
         const cur = S.targets[key];
@@ -1263,7 +1291,8 @@
       window.resetTargets = (key) => {
         const fresh = calcTargets(S.calc);
         S.targets[key] = fresh[key];
-        save(); render();
+        save();
+        render();
         toast("已恢复默认");
       };
       window.exportData = () => {
@@ -1288,7 +1317,8 @@
             S = d;
             S.calc = Object.assign({ w: 70, bf: 12, act: 1.45 }, d.calc || {});
             S.ui = d.ui && d.ui.open ? d.ui : { open: { [d.phase]: true } };
-            save(); render();
+            save();
+            render();
             toast("导入成功");
           } catch (e) {
             toast("导入失败：文件格式无效");
@@ -1304,19 +1334,22 @@
           return;
         localStorage.removeItem(LS_KEY);
         S = defaultState();
-        save(); render();
+        save();
+        render();
         toast("已重置");
       };
 
       /* ---- 收起动画：拦截关闭点击，播完动画再移除 open ---- */
-      document.addEventListener('click', (e) => {
-        const summary = e.target.closest('details.sec > summary, details.sub > summary');
+      document.addEventListener("click", (e) => {
+        const summary = e.target.closest(
+          "details.sec > summary, details.sub > summary",
+        );
         if (!summary) return;
         const details = summary.parentElement;
-        if (!details.open || details.classList.contains('closing')) return;
+        if (!details.open || details.classList.contains("closing")) return;
 
         e.preventDefault();
-        details.classList.add('closing');
+        details.classList.add("closing");
 
         const startH = details.offsetHeight;
         const cs = getComputedStyle(details);
@@ -1328,35 +1361,35 @@
           parseFloat(cs.borderBottomWidth);
 
         /* 内容淡出 */
-        const contents = details.querySelectorAll(':scope > :not(summary)');
+        const contents = details.querySelectorAll(":scope > :not(summary)");
         contents.forEach((el) => {
-          el.style.transition = 'opacity .1s ease';
-          el.style.opacity = '0';
+          el.style.transition = "opacity .1s ease";
+          el.style.opacity = "0";
         });
 
         /* 高度坍缩（inline transition，不影响展开时的 dtOpen 动画） */
-        details.style.height = startH + 'px';
+        details.style.height = startH + "px";
         details.getBoundingClientRect();
-        details.style.transition = 'height .15s cubic-bezier(.32,.72,.28,1)';
-        details.style.height = endH + 'px';
+        details.style.transition = "height .15s cubic-bezier(.32,.72,.28,1)";
+        details.style.height = endH + "px";
 
         let cleaned = false;
         const cleanup = () => {
           if (cleaned) return;
           cleaned = true;
-          details.removeEventListener('transitionend', onEnd);
+          details.removeEventListener("transitionend", onEnd);
           details.open = false;
-          details.classList.remove('closing');
-          details.style.cssText = '';
+          details.classList.remove("closing");
+          details.style.cssText = "";
           contents.forEach((el) => {
-            el.style.transition = '';
-            el.style.opacity = '';
+            el.style.transition = "";
+            el.style.opacity = "";
           });
         };
         const onEnd = (ev) => {
-          if (ev.propertyName === 'height') cleanup();
+          if (ev.propertyName === "height") cleanup();
         };
-        details.addEventListener('transitionend', onEnd);
+        details.addEventListener("transitionend", onEnd);
         setTimeout(cleanup, 200);
       });
 
