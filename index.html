@@ -251,7 +251,7 @@
         border-radius: 10px;
         padding: 3px;
         gap: 2px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
       }
       .seg button {
         padding: 7px 10px;
@@ -259,8 +259,12 @@
         font-size: 12.5px;
         font-weight: 600;
         color: var(--muted);
-        flex: 1;
+        flex: 1 1 0;
+        min-width: 0;
         white-space: nowrap;
+      }
+      .seg button .sm {
+        display: none;
       }
       .seg button.on {
         background: #fff;
@@ -763,6 +767,24 @@
         animation-timing-function: ease;
       }
 
+      /* 窄屏：阶段切换改用短标签，保证永远单行 */
+      @media (max-width: 480px) {
+        .seg {
+          gap: 1px;
+          padding: 2px;
+        }
+        .seg button {
+          padding: 7px 4px;
+          font-size: 12px;
+          letter-spacing: 0.2px;
+        }
+        .seg button .lg {
+          display: none;
+        }
+        .seg button .sm {
+          display: inline;
+        }
+      }
       @media (max-width: 520px) {
         .calc-in {
           grid-template-columns: 1fr 1fr;
@@ -852,11 +874,11 @@
         maingain: { label: "维持增肌 · 每日固定" },
       };
       const PHASE_META = {
-        cut: { name: "碳循环减脂", badge: "1", desc: "练3休1，4天一循环" },
-        reverse: { name: "反向饮食", badge: "2", desc: "4周逐步加回热量" },
-        maintain: { name: "体态重组", badge: "3", desc: "守住体重区间" },
-        leanbulk: { name: "干净增肌", badge: "4a", desc: "维持+250 缓增" },
-        maingain: { name: "维持增肌", badge: "4b", desc: "维持+125 省心" },
+        cut: { name: "碳循环减脂", short: "减脂", badge: "1", desc: "练3休1，4天一循环" },
+        reverse: { name: "反向饮食", short: "反向", badge: "2", desc: "4周逐步加回热量" },
+        maintain: { name: "体态重组", short: "重组", badge: "3", desc: "守住体重区间" },
+        leanbulk: { name: "干净增肌", short: "干增", badge: "4a", desc: "维持+250 缓增" },
+        maingain: { name: "维持增肌", short: "维增", badge: "4b", desc: "维持+125 省心" },
       };
       const PHASE_KEYS = Object.keys(PHASE_META);
 
@@ -1043,7 +1065,7 @@
     ${strip}
     <div class="hero-ctl">
       <div class="ctl-label">当前阶段</div>
-      <div class="seg">${PHASE_KEYS.map((k) => `<button class="${S.phase === k ? "on" : ""}" onclick="setPhase('${k}')">${PHASE_META[k].name}</button>`).join("")}</div>
+      <div class="seg">${PHASE_KEYS.map((k) => `<button class="${S.phase === k ? "on" : ""}" onclick="setPhase('${k}')" aria-label="${PHASE_META[k].name}"><span class="lg">${PHASE_META[k].name}</span><span class="sm">${PHASE_META[k].short}</span></button>`).join("")}</div>
       ${
         isRev
           ? `<div class="ctl-row"><span class="ctl-label">反向开始日期（决定第几周）</span>
